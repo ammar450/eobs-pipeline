@@ -1,0 +1,388 @@
+# ============================================================================
+# CLIMATE KNOWLEDGE GRAPH - SPARQL TEST QUERIES
+# ============================================================================
+# Generated: January 5, 2026
+# Purpose: Test and validate TTL files containing E-OBS climate observations
+# Usage: Run these queries against your RDF triple store or using rdflib
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# QUERY 1: Basic Data Validation - Count Total Observations
+# ----------------------------------------------------------------------------
+# Expected: Should return the total number of observation triples
+# Use: Verify data was loaded correctly
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT (COUNT(?obs) AS ?totalObservations)
+WHERE {
+    ?obs a sosa:Observation .
+}
+
+# ----------------------------------------------------------------------------
+# QUERY 2: Count Observations by Dataset
+# ----------------------------------------------------------------------------
+# Expected: Break down observations by time period
+# Use: Verify data distribution across decades
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?dataset (COUNT(?obs) AS ?count)
+WHERE {
+    ?obs a sosa:Observation ;
+         dcterms:isPartOf ?dataset .
+}
+GROUP BY ?dataset
+ORDER BY ?dataset
+
+# ----------------------------------------------------------------------------
+# QUERY 3: Sample Humidity Observations
+# ----------------------------------------------------------------------------
+# Expected: Return first 10 humidity observations with values
+# Use: Verify observation structure and data quality
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX cf: <http://vocab.nerc.ac.uk/standard_name/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+SELECT ?obs ?time ?value ?unit
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:observedProperty cf:relative_humidity ;
+         sosa:phenomenonTime ?time ;
+         sosa:hasResult ?result .
+    ?result qudt:numericValue ?value ;
+            qudt:unit ?unit .
+}
+ORDER BY ?time
+LIMIT 10
+
+# ----------------------------------------------------------------------------
+# QUERY 4: Find All Unique Locations
+# ----------------------------------------------------------------------------
+# Expected: List all grid point locations
+# Use: Verify spatial coverage
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT DISTINCT ?location
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:hasFeatureOfInterest ?location .
+}
+ORDER BY ?location
+
+# ----------------------------------------------------------------------------
+# QUERY 5: Count Observations Per Location
+# ----------------------------------------------------------------------------
+# Expected: Number of observations at each grid point
+# Use: Identify potential data gaps or anomalies
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT ?location (COUNT(?obs) AS ?obsCount)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:hasFeatureOfInterest ?location .
+}
+GROUP BY ?location
+ORDER BY DESC(?obsCount)
+
+# ----------------------------------------------------------------------------
+# QUERY 6: Time Range Coverage
+# ----------------------------------------------------------------------------
+# Expected: Earliest and latest observation times
+# Use: Verify temporal coverage
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT (MIN(?time) AS ?earliest) (MAX(?time) AS ?latest)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:phenomenonTime ?time .
+}
+
+# ----------------------------------------------------------------------------
+# QUERY 7: Observations by Year
+# ----------------------------------------------------------------------------
+# Expected: Count observations per year
+# Use: Check temporal distribution
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT (YEAR(?time) AS ?year) (COUNT(?obs) AS ?count)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:phenomenonTime ?time .
+}
+GROUP BY (YEAR(?time))
+ORDER BY ?year
+
+# ----------------------------------------------------------------------------
+# QUERY 8: Find All Sensors
+# ----------------------------------------------------------------------------
+# Expected: List unique sensors used
+# Use: Verify sensor metadata
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT DISTINCT ?sensor
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:madeBySensor ?sensor .
+}
+
+# ----------------------------------------------------------------------------
+# QUERY 9: Observations by Observed Property
+# ----------------------------------------------------------------------------
+# Expected: Count by climate variable (humidity, temperature, etc.)
+# Use: Verify all climate variables are present
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT ?property (COUNT(?obs) AS ?count)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:observedProperty ?property .
+}
+GROUP BY ?property
+ORDER BY DESC(?count)
+
+# ----------------------------------------------------------------------------
+# QUERY 10: Humidity Values in a Specific Date Range
+# ----------------------------------------------------------------------------
+# Expected: Observations from November 1972
+# Use: Test date filtering and value ranges
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX cf: <http://vocab.nerc.ac.uk/standard_name/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?obs ?time ?value ?location
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:observedProperty cf:relative_humidity ;
+         sosa:phenomenonTime ?time ;
+         sosa:hasFeatureOfInterest ?location ;
+         sosa:hasResult ?result .
+    ?result qudt:numericValue ?value .
+    FILTER(?time >= "1972-11-01T00:00:00"^^xsd:dateTime && 
+           ?time < "1972-12-01T00:00:00"^^xsd:dateTime)
+}
+ORDER BY ?time ?location
+LIMIT 20
+
+# ----------------------------------------------------------------------------
+# QUERY 11: Find High Humidity Events
+# ----------------------------------------------------------------------------
+# Expected: Observations with humidity >= 90%
+# Use: Test value filtering
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX cf: <http://vocab.nerc.ac.uk/standard_name/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+SELECT ?obs ?time ?value ?location
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:observedProperty cf:relative_humidity ;
+         sosa:phenomenonTime ?time ;
+         sosa:hasFeatureOfInterest ?location ;
+         sosa:hasResult ?result .
+    ?result qudt:numericValue ?value .
+    FILTER(?value >= 90.0)
+}
+ORDER BY DESC(?value)
+LIMIT 20
+
+# ----------------------------------------------------------------------------
+# QUERY 12: Verify Complete SOSA Pattern
+# ----------------------------------------------------------------------------
+# Expected: Check all mandatory SOSA properties are present
+# Use: Data quality validation
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?obs
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:hasFeatureOfInterest ?foi ;
+         sosa:hasResult ?result ;
+         sosa:madeBySensor ?sensor ;
+         sosa:observedProperty ?property ;
+         sosa:phenomenonTime ?phenTime ;
+         sosa:resultTime ?resTime ;
+         dcterms:isPartOf ?dataset .
+}
+LIMIT 10
+
+# ----------------------------------------------------------------------------
+# QUERY 13: Find Incomplete Observations
+# ----------------------------------------------------------------------------
+# Expected: Observations missing any required properties (should be 0)
+# Use: Data integrity check
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?obs
+WHERE {
+    ?obs a sosa:Observation .
+    FILTER NOT EXISTS { ?obs sosa:hasFeatureOfInterest ?foi }
+    UNION
+    FILTER NOT EXISTS { ?obs sosa:hasResult ?result }
+    UNION
+    FILTER NOT EXISTS { ?obs sosa:madeBySensor ?sensor }
+    UNION
+    FILTER NOT EXISTS { ?obs sosa:observedProperty ?property }
+}
+LIMIT 10
+
+# ----------------------------------------------------------------------------
+# QUERY 14: Observations at Specific Location
+# ----------------------------------------------------------------------------
+# Expected: All observations at grid point 25.38, -11.88
+# Use: Spatial query testing
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX location: <http://climate-kg.org/location/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+SELECT ?obs ?time ?property ?value
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:hasFeatureOfInterest location:grid_25p38_m11p88 ;
+         sosa:phenomenonTime ?time ;
+         sosa:observedProperty ?property ;
+         sosa:hasResult ?result .
+    ?result qudt:numericValue ?value .
+}
+ORDER BY ?time
+LIMIT 50
+
+# ----------------------------------------------------------------------------
+# QUERY 15: Average Humidity by Location (Sample)
+# ----------------------------------------------------------------------------
+# Expected: Calculate average humidity per location
+# Use: Test aggregation functions
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX cf: <http://vocab.nerc.ac.uk/standard_name/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+SELECT ?location (AVG(?value) AS ?avgHumidity) (COUNT(?obs) AS ?count)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:observedProperty cf:relative_humidity ;
+         sosa:hasFeatureOfInterest ?location ;
+         sosa:hasResult ?result .
+    ?result qudt:numericValue ?value .
+}
+GROUP BY ?location
+ORDER BY DESC(?avgHumidity)
+LIMIT 10
+
+# ----------------------------------------------------------------------------
+# QUERY 16: Data Quality - Check for NULL/Missing Values
+# ----------------------------------------------------------------------------
+# Expected: Find observations with missing numeric values (should be 0)
+# Use: Data completeness validation
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+SELECT ?obs
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:hasResult ?result .
+    FILTER NOT EXISTS { ?result qudt:numericValue ?value }
+}
+LIMIT 10
+
+# ----------------------------------------------------------------------------
+# QUERY 17: Monthly Summary Statistics
+# ----------------------------------------------------------------------------
+# Expected: Min, max, avg for each month in dataset
+# Use: Temporal analysis
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX cf: <http://vocab.nerc.ac.uk/standard_name/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+SELECT 
+    (YEAR(?time) AS ?year) 
+    (MONTH(?time) AS ?month)
+    (MIN(?value) AS ?minValue)
+    (MAX(?value) AS ?maxValue)
+    (AVG(?value) AS ?avgValue)
+    (COUNT(?obs) AS ?count)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:observedProperty cf:relative_humidity ;
+         sosa:phenomenonTime ?time ;
+         sosa:hasResult ?result .
+    ?result qudt:numericValue ?value .
+}
+GROUP BY (YEAR(?time)) (MONTH(?time))
+ORDER BY ?year ?month
+LIMIT 50
+
+# ----------------------------------------------------------------------------
+# QUERY 18: Find Observations in 1970s Decade
+# ----------------------------------------------------------------------------
+# Expected: All observations from 1970-1979
+# Use: Test decade-based filtering
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT (COUNT(?obs) AS ?count) 
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:phenomenonTime ?time .
+    FILTER(?time >= "1970-01-01T00:00:00"^^xsd:dateTime && 
+           ?time < "1980-01-01T00:00:00"^^xsd:dateTime)
+}
+
+# ----------------------------------------------------------------------------
+# QUERY 19: List All Datasets with Metadata
+# ----------------------------------------------------------------------------
+# Expected: All dataset resources with their properties
+# Use: Verify dataset-level metadata
+
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT DISTINCT ?dataset (COUNT(?obs) AS ?obsCount)
+WHERE {
+    ?obs dcterms:isPartOf ?dataset .
+}
+GROUP BY ?dataset
+ORDER BY ?dataset
+
+# ----------------------------------------------------------------------------
+# QUERY 20: Comprehensive Data Profile
+# ----------------------------------------------------------------------------
+# Expected: Overall statistics about the knowledge graph
+# Use: Quick health check
+
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+
+SELECT 
+    (COUNT(DISTINCT ?obs) AS ?totalObservations)
+    (COUNT(DISTINCT ?location) AS ?totalLocations)
+    (COUNT(DISTINCT ?sensor) AS ?totalSensors)
+    (COUNT(DISTINCT ?property) AS ?totalProperties)
+WHERE {
+    ?obs a sosa:Observation ;
+         sosa:hasFeatureOfInterest ?location ;
+         sosa:madeBySensor ?sensor ;
+         sosa:observedProperty ?property .
+}
+
+# ============================================================================
+# END OF QUERIES
+# ============================================================================

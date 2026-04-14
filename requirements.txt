@@ -1,0 +1,6 @@
+netCDF4>=1.7.0
+rdflib>=7.5.0
+xarray>=2024.7.0
+numpy>=2.0.0
+pandas>=2.3.0
+cftime>=1.6.0
