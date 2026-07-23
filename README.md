@@ -161,7 +161,7 @@ If you reuse the EOBS knowledge graph, please cite:
 @inproceedings{yousafEOBSKnowledgeGraph2026,
 	address = {Ghent, Belgium},
 	title = {The {EOBS} knowledge graph: {A} knowledge graph of {European} climate observations},
-	booktitle = {Companion Proceedings of SEMANTiCS 2026},
+	booktitle = {{SEMANTiCS} 2026 - {Poster} and {Demo} {Track}},
 	author = {Yousaf, Ammar and Degbelo, Auriol},
 	year = {2026},
 }
