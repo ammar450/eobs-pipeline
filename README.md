@@ -152,7 +152,7 @@ For detailed information, see the [documentation](#-documentation) section above
 
 ## 🙏 Acknowledgments
 
-The work has been funded by the European Project EOSC Data Commons. A dump of the knowledge graph is available at https://doi.org/10.34740/kaggle/dsv/16870986. 
+The work has been funded by the European Project EOSC Data Commons. A dump of the knowledge graph is available at https://doi.org/10.34740/kaggle/ds/10081642. 
 
 If you reuse the EOBS knowledge graph, please cite:
 
