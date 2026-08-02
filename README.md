@@ -29,6 +29,13 @@ This GitHub repository documents only the transformation pipeline into RDF. To s
 7 climate variables: **fg** (wind speed), **hu** (humidity), **qq** (radiation), **rr** (precipitation), **tg** (mean temp)
 
 
+### Data Model 
+
+<img width="922" height="352" alt="final_data_model (1)" src="https://github.com/user-attachments/assets/e87f7352-870e-47d1-88db-4838b639205e" />
+
+### Conversion Pipeline 
+
+<img width="1669" height="726" alt="pipeline" src="https://github.com/user-attachments/assets/4e516440-ddd3-4033-8e10-0f6f54eb8e10" />
 
 ---
 
