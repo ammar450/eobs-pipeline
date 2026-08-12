@@ -26,7 +26,7 @@ This GitHub repository documents only the transformation pipeline into RDF. To s
 
 ### Supported Climate Variables
 
-7 climate variables: **fg** (wind speed), **hu** (humidity), **qq** (radiation), **rr** (precipitation), **tg** (mean temp)
+5 climate variables: **fg** (wind speed), **hu** (humidity), **qq** (radiation), **rr** (precipitation), **tg** (mean temp)
 
 
 ### Data Model 
